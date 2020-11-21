@@ -1,0 +1,25 @@
+version: "3.8"
+
+services:
+  gitlab:
+    image: "gitlab/gitlab-ce:latest"
+    container_name: gitlab
+    # restart: always
+    hostname: "localhost"
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'http://localhost:10080/gitlab'
+        gitlab_rails['gitlab_shell_ssh_port'] = 10022
+    ports:
+      - "10080:10080"
+      - "10022:22"
+    volumes:
+      - "./data/gitlab/config:/etc/gitlab"
+      - "./data/gitlab/logs:/var/log/gitlab"
+      - "./data/gitlab/data:/var/opt/gitlab"
+    networks:
+      - shared_network
+
+networks:
+  shared_network:
+    external: true
