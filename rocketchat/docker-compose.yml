@@ -1,4 +1,4 @@
-version: '3.8'
+version: '2'
 
 services:
   rocketchat:
@@ -16,7 +16,8 @@ services:
       - ./data/uploads:/app/uploads
     environment:
       - PORT=13000
-      - ROOT_URL=http://localhost:13000/rocketchat
+      - ROOT_URL=http://localhost
+      - OVERWRITE_SETTING_Site_Url=https://localhost
       - MONGO_URL=mongodb://mongo:27017/rocketchat
       - MONGO_OPLOG_URL=mongodb://mongo:27017/local
       - MAIL_URL=smtp://smtp.email
@@ -38,7 +39,7 @@ services:
     # restart: unless-stopped
     volumes:
      - ./data/db:/data/db
-     #- ./data/dump:/dump
+     - ./data/dump:/dump
     command: mongod --smallfiles --oplogSize 128 --replSet rs0 --storageEngine=mmapv1
     labels:
       - "traefik.enable=false"
@@ -66,28 +67,29 @@ services:
       - rocketchat_network
 
   # hubot, the popular chatbot (add the bot user first and change the password before starting this image)
-  # hubot:
-  #   image: rocketchat/hubot-rocketchat:latest
-  #   # restart: unless-stopped
-  #   environment:
-  #     - ROCKETCHAT_URL=rocketchat:13000
-  #     - ROCKETCHAT_ROOM=GENERAL
-  #     - ROCKETCHAT_USER=bot
-  #     - ROCKETCHAT_PASSWORD=botpassword
-  #     - BOT_NAME=bot
-  # # you can add more scripts as you'd like here, they need to be installable by npm
-  #     - EXTERNAL_SCRIPTS=hubot-help,hubot-seen,hubot-links,hubot-diagnostics
-  #   depends_on:
-  #     - rocketchat
-  #   labels:
-  #     - "traefik.enable=false"
-  #   volumes:
-  #     - ./scripts:/home/hubot/scripts
-  # # this is used to expose the hubot port for notifications on the host on port 3001, e.g. for hubot-jenkins-notifier
-  #   ports:
-  #     - 13001:8080
-  #   networks:
-  #     - rocketchat_network
+  hubot:
+    image: rocketchat/hubot-rocketchat:latest
+    # restart: unless-stopped
+    environment:
+      - ROCKETCHAT_URL=rocketchat:13000
+      - ROCKETCHAT_ROOM=GENERAL
+      - ROCKETCHAT_USER=bot
+      - ROCKETCHAT_PASSWORD=botpassword
+      - BOT_NAME=bot
+  # you can add more scripts as you'd like here, they need to be installable by npm
+      - EXTERNAL_SCRIPTS=hubot-help,hubot-seen,hubot-links,hubot-diagnostics
+    depends_on:
+      - rocketchat
+    labels:
+      - "traefik.enable=false"
+    volumes:
+      - ./data/scripts:/home/hubot/scripts
+  # this is used to expose the hubot port for notifications on the host on port 3001, e.g. for hubot-jenkins-notifier
+    ports:
+      - 3001:8080
+    networks:
+      - shared_network
+      - rocketchat_network
 
 networks:
   shared_network:
